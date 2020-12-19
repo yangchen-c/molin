@@ -243,3 +243,36 @@ export function orderDelete(params) {
   })
 }
 
+
+// -----------------------------------------------------------------------------------
+// 代金券管理
+export function couponList(params, params1) {
+  return request({
+    url: `coupon/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function couponAdd(data) {
+  return request({
+    url: 'coupon',
+    method: 'post',
+    data
+  })
+}
+
+export function couponUpdate(data) {
+  return request({
+    url: 'coupon',
+    method: 'put',
+    data
+  })
+}
+
+export function couponDelete(params) {
+  return request({
+    url: 'coupon',
+    method: 'delete',
+    params
+  })
+}

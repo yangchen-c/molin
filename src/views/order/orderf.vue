@@ -33,22 +33,23 @@
             <el-tag type="danger" v-if="scope.row.state === 3">已取消</el-tag>
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="timeCount" label="倒计时">
+        <!-- <el-table-column align="center" prop="timeCount" label="倒计时">
           <template slot-scope="scope">
-            <span v-if="scope.row.timeCount<0">00:00</span>
-            <span v-if="scope.row.timeCount>0">00:00</span>
+            <span v-if="scope.row.timeCount<0">00:00:00</span>
+            <span v-if="scope.row.timeCount>0">{{scope.row.timeCount|capitalize}}</span>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column align="center" prop="orderGoodId" label="商品信息" />
-        <el-table-column align="center" prop="saleUserId.realName" label="卖家" />
-        <el-table-column align="center" prop="buyUserId.realName" label="买家" />
+        <el-table-column align="center" prop="saleUserName" label="卖家" />
+        <el-table-column align="center" prop="buyUserName" label="买家" />
         <el-table-column align="center" prop="price" label="订单金额" width="200" />
         <el-table-column align="center" prop="goodId.houseId" label="库号" width="200" />
-        <el-table-column align="center" prop="shopId.name" label="归属分馆" width="200">
-          <template slot-scope="scope">
+        <el-table-column align="center" prop="shopName" label="归属分馆" width="200">
+          <!-- <template slot-scope="scope">
             <el-tag>{{scope.row.shopId.name}}</el-tag>
-          </template>
+          </template> -->
         </el-table-column>
+        <el-table-column align="center" prop="sessionName" label="所属场次" width="200" />
         <el-table-column align="center" prop="goodId.name" label="拍品标题" width="200" />
         <el-table-column align="center" prop="createTime" label="注册日期" width="200" />
         <el-table-column align="center" label="操作" fixed="right" width="120">
@@ -105,6 +106,10 @@
     },
     data() {
       return {
+        // 倒计时
+        timer: '',
+        countdown: [],
+        timer1: 0,
         flag: true, //分页筛选显示
         flag1: false,
         valueState: '',
@@ -161,6 +166,20 @@
       // this.getList();
       this.getOrderList()
       this.getShopList();
+      // this.showTime()
+    },
+    // 倒计时过滤器
+    filters: {
+      capitalize: function (value) {
+        var h = parseInt(value / 3600)
+        var m = parseInt((value - 3600 * h) / 60)
+        var s = (value - 3600 * h) - 60 * m
+
+        var hh = h < 10 ? '0' + h : h
+        var mm = m < 10 ? '0' + m : m
+        var ss = s < 10 ? '0' + s : s
+        return hh + ':' + mm + ':' + ss
+      }
     },
     methods: {
       changeState(val) {
@@ -168,38 +187,36 @@
         if (val === 'state2') {
           this.num = 4
           this.getOrderList()
-          this.flag1 = true
-          this.flag = false
         } else if (val === "state1") {
           this.num = 100
           // this.getList();
           this.getOrderList()
-          this.flag = true
-          this.flag1 = false
         } else if (val === 'state3') {
           this.num = 0
           this.getOrderList()
-          this.flag1 = true
-          this.flag = false
         } else if (val === 'state4') {
           this.num = 1
           this.getOrderList()
-          this.flag1 = true
-          this.flag = false
         } else if (val === 'state5') {
           this.num = 2
           this.getOrderList()
-          this.flag1 = true
-          this.flag = false
         } else if (val === 'state6') {
           this.num = 3
           this.getOrderList()
-          this.flag1 = true
-          this.flag = false
         }
       },
       // 定时器
-      
+      // showTime() {
+      //   this.timer = setInterval(() => {
+      //     // this.getOrderList()
+      //     this.countdown = this.tableData.map((item, i) => {
+      //       item.timeCount--
+            
+      //       console.log(item.timeCount)
+      //     })
+      //   }, 2000);
+      // },
+      // 倒计时处理
       // 获取收货地址
       getAddress(data) {
         const params = {
@@ -225,20 +242,20 @@
           });
       },
       // 获取数据
-      getList() {
-        const params = {
-          page: this.listQuery.page,
-          size: this.listQuery.limit,
-        };
-        const params1 = {
-          realName: this.listQuery.realName !== "" ? this.listQuery.realName : undefined,
-          phone: this.listQuery.phone !== "" ? this.listQuery.phone : undefined,
-        };
-        orderList(params, params1).then((res) => {
-          this.tableData = res.data.data.currentList;
-          this.total = res.data.data.totalRecords
-        });
-      },
+      // getList() {
+      //   const params = {
+      //     page: this.listQuery.page,
+      //     size: this.listQuery.limit,
+      //   };
+      //   const params1 = {
+      //     realName: this.listQuery.realName !== "" ? this.listQuery.realName : undefined,
+      //     phone: this.listQuery.phone !== "" ? this.listQuery.phone : undefined,
+      //   };
+      //   orderList(params, params1).then((res) => {
+      //     this.tableData = res.data.data.currentList;
+      //     this.total = res.data.data.totalRecords
+      //   });
+      // },
       // 获取提货数据
       getOrderList() {
         const params = {
@@ -253,6 +270,7 @@
         getOrderList(params, params1).then((res) => {
           this.tableData = res.data.data.currentList;
           this.total = res.data.data.totalRecords
+          // this.countdown = res.data.data.currentList
         });
       },
 
