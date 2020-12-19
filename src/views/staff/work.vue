@@ -53,7 +53,7 @@
             }" placeholder="任意时间点">
           </el-time-picker>
         </el-form-item>
-        <el-form-item label="所属分管" :label-width="formLabelWidth">
+        <el-form-item label="所属会馆" :label-width="formLabelWidth">
           <el-select v-model="form.shopId.id" clearable placeholder="请选择">
             <el-option v-for="item in tableData1" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>

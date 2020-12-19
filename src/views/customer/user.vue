@@ -3,21 +3,14 @@
     <div class="btn">
       <el-button type="primary" @click="addShop">新建</el-button>
       <el-button type="info" @click="handleDownload">导出表格</el-button>
-      <!-- <el-input
-        v-model="tel"
-        placeholder="请输入用户ID"
-        clearable
-        style="width: 180px; margin-left: 50px"
-      /> -->
+      <el-input v-model="listQuery.id" placeholder="请输入用户ID" clearable style="width: 180px; margin-left: 50px" />
       <el-input v-model="listQuery.phone" placeholder="请输入手机号" clearable style="width: 180px" />
-      <!-- <el-input
-        v-model="tel"
-        placeholder="请输入推荐人手机号"
-        clearable
-        style="width: 180px"
-      /> -->
       <el-input v-model="listQuery.realName" placeholder="请输入用户姓名" clearable style="width: 180px"
         @keyup.enter.native="getList" />
+      <el-select v-model="valueState" placeholder="请选择用户状态" @change="changeState($event)">
+        <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+        </el-option>
+      </el-select>
       <el-button type="primary" @click="getList()">搜索</el-button>
     </div>
     <div class="all">总用户数：{{ this.tableData.length }}</div>
@@ -27,23 +20,51 @@
         <el-table-column align="center" prop="nickName" label="昵称" width="100" />
         <el-table-column align="center" prop="phone" label="注册手机号" width="130" />
         <el-table-column align="center" prop="parentId" label="推荐关系" />
-        <el-table-column align="center" prop="aint" label="余额" width="200" />
+        <el-table-column align="center" prop="aint" label="AINT余额" width="200" />
         <el-table-column align="center" prop="realName" label="真实姓名" width="200" />
-        <el-table-column align="center" prop="shopId.name" label="归属分管" width="200">
+        <el-table-column align="center" prop="shopId.name" label="归属分馆" width="200">
           <template slot-scope="scope">
             <el-tag>{{scope.row.shopId.name}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column align="center" prop="createTime" label="注册日期" width="200" />
-        <el-table-column align="center" label="操作" fixed="right">
+        <el-table-column align="center" prop="aliPayId" label="支付宝账号" width="200" />
+        <el-table-column align="center" prop="aliPayName" label="支付宝姓名" width="200" />
+        <el-table-column align="center" prop="aliPayCode" label="支付宝收款截图">
+          <el-popover placement="right" trigger="click" width="420" slot-scope="scope">
+            <img :src="scope.row.aliPayCode" :alt="scope.row.aliPayCode" style="width: 400px;" />
+            <img slot="reference" :src="scope.row.aliPayCode" :alt="scope.row.aliPayCode"
+              style="max-height: auto;max-width: 50px;cursor: pointer;" />
+          </el-popover>
+        </el-table-column>
+        <el-table-column align="center" prop="wxId" label="微信号" width="200" />
+        <el-table-column align="center" prop="wxCode" label="微信收款截图">
+          <el-popover placement="right" trigger="click" width="420" slot-scope="scope">
+            <img :src="scope.row.wxCode" :alt="scope.row.wxCode" style="width: 400px;" />
+            <img slot="reference" :src="scope.row.wxCode" :alt="scope.row.wxCode"
+              style="max-height: auto;max-width: 50px;cursor: pointer;" />
+          </el-popover>
+        </el-table-column>
+        <el-table-column align="center" prop="cardName" label="持卡人姓名" width="200" />
+        <el-table-column align="center" prop="cardNumber" label="银行卡号" width="200" />
+        <el-table-column align="center" label="操作" fixed="right" width="180">
           <template slot-scope="scope">
             <el-button size="mini" icon="el-icon-document-copy" type="primary" @click="getEditData(scope.row)">编辑
             </el-button>
             <el-button size="mini" icon="el-icon-office-building" type="success" @click="getAddress(scope.row)">收货地址
             </el-button>
-            <el-button size="mini" icon="el-icon-lock" type="warning" @click="getEditData(scope.row)">限制抢拍</el-button>
-            <el-button size="mini" icon="el-icon-lock" type="warning" @click="delData(scope.row)">限制登录</el-button>
-            <el-button size="mini" icon="el-icon-lock" type="warning" @click="getEditData(scope.row)">限制资金转出</el-button>
+            <el-button v-if="scope.row.buyLock=='0'" size="mini" icon="el-icon-lock" type="danger"
+              @click="buyLock(scope.row)">限制抢拍</el-button>
+            <el-button v-if="scope.row.buyLock=='1'" size="mini" icon="el-icon-unlock" type="warning"
+              @click="buyLock1(scope.row)">解除抢拍限制</el-button>
+            <el-button v-if="scope.row.state=='0'" size="mini" icon="el-icon-lock" type="danger"
+              @click="state(scope.row)">限制登录</el-button>
+            <el-button v-if="scope.row.state=='1'" size="mini" icon="el-icon-unlock" type="warning"
+              @click="state1(scope.row)">解除登录限制</el-button>
+            <el-button v-if="scope.row.transferLock=='0'" size="mini" icon="el-icon-lock" type="danger"
+              @click="transferLock(scope.row)">限制资金转出</el-button>
+            <el-button v-if="scope.row.transferLock=='1'" size="mini" icon="el-icon-unlock" type="warning"
+              @click="transferLock1(scope.row)">解除资金转出限制</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,6 +89,12 @@
         </el-form-item>
         <el-form-item label="真实姓名" :label-width="formLabelWidth">
           <el-input v-model="form.realName" placeholder="请输入真实姓名" style="width: 400px" />
+        </el-form-item>
+        <el-form-item label="登录密码" :label-width="formLabelWidth">
+          <el-input v-model="form.password" placeholder="请输入真实姓名" style="width: 400px" />
+        </el-form-item>
+        <el-form-item label="交易密码" :label-width="formLabelWidth">
+          <el-input v-model="form.businessPassword" placeholder="请输入真实姓名" style="width: 400px" />
         </el-form-item>
         <el-form-item label="所属分管" :label-width="formLabelWidth">
           <el-select v-model="form.shopId.id" clearable placeholder="请选择">
@@ -112,12 +139,27 @@
     },
     data() {
       return {
+        valueState: '', //用户状态筛选
+        options: [{
+          value: 'state1',
+          label: '全部用户'
+        }, {
+          value: 'state2',
+          label: '抢拍被限'
+        }, {
+          value: 'state3',
+          label: '登录被限'
+        }, {
+          value: 'state4',
+          label: '资金转出被限'
+        }],
         // 分页
         pictLoading: true,
         total: 0,
         listQuery: {
           page: 1,
           limit: 10,
+          id: "",
           realName: "",
           phone: "",
         },
@@ -137,6 +179,8 @@
           parentId: "",
           aint: "",
           realName: "",
+          password: "",
+          businessPassword: "",
           shopId: {
             id: "",
           },
@@ -148,6 +192,19 @@
       this.getShopList();
     },
     methods: {
+      // 状态筛选
+      changeState(val) {
+        console.log(val)
+        if (val === 'state1') {
+          this.tableData = this.tableDataAll
+        } else if (val === "state2") {
+          this.tableData = this.tableDataAll.filter((el) => el.buyLock === 1)
+        } else if (val === 'state3') {
+          this.tableData = this.tableDataAll.filter((el) => el.state === 1)
+        } else if (val === 'state4') {
+          this.tableData = this.tableDataAll.filter((el) => el.transferLock === 1)
+        }
+      },
       // 获取收货地址
       getAddress(data) {
         const params = {
@@ -181,9 +238,12 @@
         const params1 = {
           realName: this.listQuery.realName !== "" ? this.listQuery.realName : undefined,
           phone: this.listQuery.phone !== "" ? this.listQuery.phone : undefined,
+          id: this.listQuery.id !== "" ? this.listQuery.id : undefined,
         };
         userList(params, params1).then((res) => {
           this.tableData = res.data.data.currentList;
+          this.tableDataAll = res.data.data.currentList;
+          this.total = res.data.data.totalRecords
         });
       },
 
@@ -196,6 +256,8 @@
         this.form.parentId = "";
         this.form.aint = "";
         this.form.realName = "";
+        this.form.password = "";
+        this.form.businessPassword = "";
         this.form.shopId.id = "";
         this.title1 = "新增用户";
       },
@@ -209,6 +271,8 @@
         this.form.parentId = data.parentId;
         this.form.aint = data.aint;
         this.form.realName = data.realName;
+        this.form.password = data.password;
+        this.form.businessPassword = data.businessPassword;
         this.form.shopId.id = data.shopId.id;
         this.title1 = "编辑用户";
       },
@@ -248,6 +312,204 @@
               });
             });
         }
+      },
+      // 限制抢拍
+      buyLock(row) {
+        this.$confirm('此操作将限制用户抢拍, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            userUpdate({
+                id: row.id,
+                buyLock: '1'
+              })
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '限制成功'
+                })
+                this.getList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消操作'
+            })
+          })
+      },
+      // 解除抢拍限制
+      buyLock1(row) {
+        this.$confirm('此操作将解除用户抢拍限制, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            userUpdate({
+                id: row.id,
+                buyLock: '0'
+              })
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '解除成功'
+                })
+                this.getList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消操作'
+            })
+          })
+      },
+      // 限制资金转出
+      transferLock(row) {
+        this.$confirm('此操作将限制资金转出, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            userUpdate({
+                id: row.id,
+                transferLock: '1'
+              })
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '限制成功'
+                })
+                this.getList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消操作'
+            })
+          })
+      },
+      // 解除资金转出限制
+      transferLock1(row) {
+        this.$confirm('此操作将解除资金转出限制, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            userUpdate({
+                id: row.id,
+                transferLock: '0'
+              })
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '解除成功'
+                })
+                this.getList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消操作'
+            })
+          })
+      },
+      // 限制用户登录
+      state(row) {
+        this.$confirm('此操作将限制用户登录, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            userUpdate({
+                id: row.id,
+                state: '1'
+              })
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '限制成功'
+                })
+                this.getList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消操作'
+            })
+          })
+      },
+      // 解除登录限制
+      state1(row) {
+        this.$confirm('此操作将解除登陆限制, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            userUpdate({
+                id: row.id,
+                state: '0'
+              })
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '解除成功'
+                })
+                this.getList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消操作'
+            })
+          })
       },
       // 删除
       delData(row) {

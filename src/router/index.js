@@ -69,7 +69,7 @@ export const constantRouterMap = [
       }
     ]
   },
-  // yc客户管理
+  // 客户管理
   {
     path: '/customer',
     component: Layout,
@@ -105,7 +105,7 @@ export const constantRouterMap = [
     ]
   },
 
-  // yc财务管理
+  // 财务管理
   {
     path: '/balance',
     component: Layout,
@@ -148,7 +148,7 @@ export const constantRouterMap = [
     ]
   },
 
-  // yc会馆管理
+  // 会馆管理
   {
     path: '/staff',
     component: Layout,
@@ -191,6 +191,50 @@ export const constantRouterMap = [
     ]
   },
 
+  // 拍卖订单管理
+  {
+    path: '/order',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    name: 'order',
+    meta: {
+      title: '拍卖订单管理',
+      icon: 'goods_list'
+    },
+    children: [
+      {
+        path: 'orderf',
+        component: () => import('@/views/order/orderf'),
+        name: 'orderf',
+        meta: {
+          // perms: ['GET /admin/user/list'],
+          title: '买单卖单列表',
+          // affix: true
+        }
+      }, 
+      // {
+      //   path: 'take',
+      //   component: () => import('@/views/order/take'),
+      //   name: 'take',
+      //   meta: {
+      //     // perms: ['GET /admin/user/list'],
+      //     title: '提货订单列表',
+      //     // affix: true
+      //   }
+      // },
+       {
+        path: 'coupon',
+        component: () => import('@/views/order/coupon'),
+        name: 'coupon',
+        meta: {
+          // perms: ['GET /admin/user/list'],
+          title: '代金券列表',
+          // affix: true
+        }
+      }
+    ]
+  },
 
   // yc end
   // {

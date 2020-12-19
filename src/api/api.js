@@ -14,7 +14,7 @@ export function uploadFile(data) {
 }
 
 
-// yc用户管理
+// 用户管理
 export function userList(params, params1) {
   return request({
     url: `user/getPaging/${params.page}/${params.size}`,
@@ -46,7 +46,7 @@ export function userDelete(params) {
     params
   })
 }
-// yc收货地址管理
+// 收货地址管理
 export function addressList(params) {
   return request({
     url: 'address/getAddressList',
@@ -62,7 +62,7 @@ export function addressDelete(params) {
     params
   })
 }
-// yc用户审核--------------------------------------------------------------------------------------------
+// 用户审核--------------------------------------------------------------------------------------------
 export function uCheckList(params, params1) {
   return request({
     url: `examine/getPaging/${params.page}/${params.size}`,
@@ -96,7 +96,7 @@ export function uCheckDelete(params) {
 
 
 // -----------------------------------------------------------------------------------
-// yc会馆管理
+// 会馆管理
 export function shopList(params) {
   return request({
     url: 'shop',
@@ -129,7 +129,7 @@ export function shopDelete(params) {
 }
 
 // -----------------------------------------------------------------------------------
-// yc场次管理
+// 场次管理
 export function sessionList(params) {
   return request({
     url: 'session',
@@ -160,3 +160,86 @@ export function sessionDelete(params) {
     params
   })
 }
+
+// -----------------------------------------------------------------------------------
+// 商品管理
+export function goodsList(params, params1) {
+  return request({
+    url: `good/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function goodsAdd(data) {
+  return request({
+    url: 'good',
+    method: 'post',
+    data
+  })
+}
+
+export function goodsUpdate(data) {
+  return request({
+    url: 'good',
+    method: 'put',
+    data
+  })
+}
+
+export function goodsDelete(params) {
+  return request({
+    url: 'good',
+    method: 'delete',
+    params
+  })
+}
+
+// -----------------------------------------------------------------------------------
+// 买单卖单管理
+export function orderList(params, params1) {
+  return request({
+    url: `order/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+// 提货订单
+export function getOrderList(params, params1) {
+  return request({
+    url: `order/getPaging/${params.page}/${params.size}/${params.num}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function orderAdd(data) {
+  return request({
+    url: 'order',
+    method: 'post',
+    data
+  })
+}
+
+export function orderUpdate(data) {
+  return request({
+    url: 'order',
+    method: 'put',
+    data
+  })
+}
+// 买单卖单快递修改
+export function materialUpdate(data) {
+  return request({
+    url: 'material',
+    method: 'put',
+    data
+  })
+}
+//买单卖单快递修改end
+export function orderDelete(params) {
+  return request({
+    url: 'order',
+    method: 'delete',
+    params
+  })
+}
+

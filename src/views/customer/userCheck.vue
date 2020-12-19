@@ -39,6 +39,9 @@
           </template>
         </el-table-column>
       </el-table>
+      <!-- 分页 -->
+      <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
+        @pagination="getList" />
     </div>
     <!-- dialog弹出框 -->
     <el-dialog :title="title1" :visible.sync="dialogFormVisible">
@@ -88,9 +91,12 @@
     uCheckAdd,
     uCheckUpdate,
   } from "@/api/api";
-
+  import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
   export default {
     name: "Stafff",
+    components: {
+      Pagination
+    },
     data() {
       return {
         valueState: '', //审核状态
@@ -191,6 +197,7 @@
         uCheckList(params, params1).then((res) => {
           this.pictLoading = false
           this.tableData = res.data.data.currentList;
+          this.total = res.data.data.totalRecords
         });
       },
 
