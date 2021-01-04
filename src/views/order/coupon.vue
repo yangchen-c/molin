@@ -11,8 +11,25 @@
     <div class="tablee">
       <el-table :data="tableData" border style="width: 100%" v-loading="pictLoading">
         <el-table-column align="center" prop="id" label="ID" width="50" />
-        <el-table-column align="center" prop="desc" label="代金券标题" width="100" />
+        <el-table-column align="center" prop="name" label="代金券名称" width="100" />
         <el-table-column align="center" prop="price" label="代金券价值" />
+        <el-table-column align="center" prop="userId.id" label="所属用户ID" />
+        <el-table-column align="center" prop="shopId" label="所属会馆ID" />
+        <el-table-column align="center" prop="sessionId" label="所属场次ID" />
+        <el-table-column align="center" prop="createTime" label="代金券生成时间" />
+        <el-table-column align="center" prop="useTime" label="代金券使用时间" />
+        <el-table-column align="center" prop="endTime" label="代金券过期时间" />
+        <el-table-column align="center" prop="state" label="状态">
+          <template slot-scope="scope">
+            <el-tag type="success" v-if="scope.row.state === 0">未使用</el-tag>
+            <el-tag type="success" v-if="scope.row.state === 1">已使用</el-tag>
+            <el-tag type="danger" v-if="scope.row.state === 2">已过期</el-tag>
+            <el-tag type="danger" v-if="scope.row.state === 3">已兑币</el-tag>
+            <el-tag type="danger" v-if="scope.row.state === 4">已兑单</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="orderId" label="代金券使用的订单ID" />
+        <el-table-column align="center" prop="goodId" label="代金券使用的商品ID" />
         <el-table-column align="center" label="操作" fixed="right" width="180">
           <template slot-scope="scope">
             <el-button size="mini" icon="el-icon-document-copy" type="primary" @click="getEditData(scope.row)">编辑

@@ -337,7 +337,7 @@
       // },
       // 获取提货数据
       getOrderList() {
-        const params = {
+        const params = { 
           page: this.listQuery.page,
           size: this.listQuery.limit,
           num: this.num

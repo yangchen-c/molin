@@ -428,6 +428,39 @@ export function couponDelete(params) {
 }
 
 
+// -----------------------------------------------------------------------------------
+// 轮播图管理
+export function rotationList(params, params1) {
+  return request({
+    url: `rotation/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function rotationAdd(data) {
+  return request({
+    url: 'rotation',
+    method: 'post',
+    data
+  })
+}
+
+export function rotationUpdate(data) {
+  return request({
+    url: 'rotation',
+    method: 'put',
+    data
+  })
+}
+
+export function rotationDelete(params) {
+  return request({
+    url: 'rotation',
+    method: 'delete',
+    params
+  })
+}
+
 
 // 测试用接口——————————————————————————————————————————
 export function ceshiList(params) {
