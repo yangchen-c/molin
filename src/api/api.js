@@ -13,6 +13,40 @@ export function uploadFile(data) {
   })
 }
 
+// 权限管理
+export function powerList(params) {
+  return request({
+    url: 'user/loginManager',
+    method: 'get',
+    params
+  })
+}
+
+export function powerAdd(data) {
+  return request({
+    url: 'user/loginManager',
+    method: 'post',
+    data
+  })
+}
+
+export function powerUpdate(data) {
+  return request({
+    url: 'user/loginManager',
+    method: 'put',
+    data
+  })
+}
+
+export function powerDelete(params) {
+  return request({
+    url: 'user/loginManager',
+    method: 'delete',
+    params
+  })
+}
+
+
 
 // 用户管理
 export function userList(params, params1) {
@@ -33,7 +67,7 @@ export function userAdd(data) {
 
 export function userUpdate(data) {
   return request({
-    url: 'user',
+    url: 'user/update',
     method: 'put',
     data
   })
@@ -46,6 +80,16 @@ export function userDelete(params) {
     params
   })
 }
+
+// 余额更新
+export function detailUpdate(data) {
+  return request({
+    url: 'detail',
+    method: 'post',
+    data
+  })
+}
+
 // 收货地址管理
 export function addressList(params) {
   return request({
@@ -94,10 +138,56 @@ export function uCheckDelete(params) {
   })
 }
 
+// ------------------------------------------------------------------------------------
+// 财务管理
+export function detailList(params, params1) {
+  return request({
+    url: `detail/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function detailList1(params) {
+  return request({
+    url: 'detail',
+    method: 'get',
+    params
+  })
+}
+export function detailAdd(data) {
+  return request({
+    url: 'detail',
+    method: 'post',
+    data
+  })
+}
 
+export function detailUpdate1(data) {
+  return request({
+    url: 'detail',
+    method: 'put',
+    data
+  })
+}
+
+export function detailDelete(params) {
+  return request({
+    url: 'detail',
+    method: 'delete',
+    params
+  })
+}
 // -----------------------------------------------------------------------------------
 // 会馆管理
-export function shopList(params) {
+export function shopList(params, params1) {
+  return request({
+    url: `shop/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+
+export function shopList1(params) {
   return request({
     url: 'shop',
     method: 'get',
@@ -130,7 +220,14 @@ export function shopDelete(params) {
 
 // -----------------------------------------------------------------------------------
 // 场次管理
-export function sessionList(params) {
+export function sessionList(params, params1) {
+  return request({
+    url: `session/getPaging/${params.page}/${params.size}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function sessionList1(params) {
   return request({
     url: 'session',
     method: 'get',
@@ -193,7 +290,38 @@ export function goodsDelete(params) {
     params
   })
 }
+// -----------------------------------------------------------------------------------
+// 拍品管理
+export function sgsList(params, params1) {
+  return request({
+    url: `sg/getPaging/${params.page}/${params.size}/${params.num}`,
+    method: 'get',
+    params: params1
+  })
+}
+export function sgsAdd(data) {
+  return request({
+    url: 'sg',
+    method: 'post',
+    data
+  })
+}
 
+export function sgsUpdate(data) {
+  return request({
+    url: 'sg',
+    method: 'put',
+    data
+  })
+}
+
+export function sgsDelete(params) {
+  return request({
+    url: 'sg',
+    method: 'delete',
+    params
+  })
+}
 // -----------------------------------------------------------------------------------
 // 买单卖单管理
 export function orderList(params, params1) {
@@ -226,15 +354,37 @@ export function orderUpdate(data) {
     data
   })
 }
-// 买单卖单快递修改
-export function materialUpdate(data) {
+//买单卖单快递修改
+
+export function orderUpdate1(data) {
   return request({
-    url: 'material',
-    method: 'put',
+    url: 'order/commitMaterial',
+    method: 'post',
     data
   })
 }
 //买单卖单快递修改end
+
+// 买单卖单取消返场
+export function orderBack(data) {
+  return request({
+    url: 'order/cancelBack',
+    method: 'post',
+    data
+  })
+}
+// 买单卖单取消返场end
+
+
+// 买单卖单取消提货
+export function takeBack(params, params1) {
+  return request({
+    url: `order/cancelMaterial/${params.orderId}`,
+    method: 'get',
+    params: params1
+  })
+}
+// 买单卖单取消提货end
 export function orderDelete(params) {
   return request({
     url: 'order',
@@ -273,6 +423,17 @@ export function couponDelete(params) {
   return request({
     url: 'coupon',
     method: 'delete',
+    params
+  })
+}
+
+
+
+// 测试用接口——————————————————————————————————————————
+export function ceshiList(params) {
+  return request({
+    url: 'good/getGoodList/1/1/30',
+    method: 'get',
     params
   })
 }

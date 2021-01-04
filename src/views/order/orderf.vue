@@ -3,34 +3,39 @@
     <div class="btn">
       <!-- <el-button type="primary" @click="addShop">新建</el-button> -->
       <el-button type="info" @click="handleDownload">导出表格</el-button>
-      <!-- <el-input v-model="listQuery.phone" placeholder="请输入手机号" clearable style="width: 180px" /> -->
-      <!-- <el-input v-model="listQuery.realName" placeholder="请输入用户姓名" clearable style="width: 180px"
-        @keyup.enter.native="getList" /> -->
-      <el-input v-model="listQuery.realName" placeholder="请输入用户姓名" clearable style="width: 180px"
-        @keyup.enter.native="getOrderList" />
-      <!-- <el-button type="primary" @click="getList()">搜索</el-button> -->
-      <el-button type="primary" @click="getOrderList()">搜索</el-button>
-
+      <el-input v-model="listQuery.buyUserId" placeholder="请输入买家ID" clearable style="width: 150px" />
+      <el-input v-model="listQuery.buyUserPhone" placeholder="请输入买家手机号" clearable style="width: 180px" />
+      <el-input v-model="listQuery.saleUserId" placeholder="请输入卖家ID" clearable style="width: 150px" />
+      <el-input v-model="listQuery.saleUserPhone" placeholder="请输入卖家手机号" clearable style="width: 180px" />
+      <el-input v-model="listQuery.goodHouseId" placeholder="请输入库号" clearable style="width: 180px" />
+      <el-input v-model="listQuery.number" placeholder="请输入订单编号" clearable style="width: 180px" />
+      <el-input v-model="listQuery.shopName" placeholder="请输入所属分管" clearable style="width: 180px" />
+      <el-input v-model="listQuery.sessionName" placeholder="请输入所属场次" clearable style="width: 180px" />
       <el-select v-model="valueState" placeholder="请选择订单状态" @change="changeState($event)">
         <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
         </el-option>
       </el-select>
+      <el-button type="primary" @click="getOrderList()">搜索</el-button>
+
     </div>
     <div class="tablee">
       <el-table :data="tableData" border style="width: 100%" v-loading="pictLoading">
         <el-table-column align="center" prop="id" label="ID" width="50" />
-        <el-table-column align="center" prop="materialId" label="提货状态" width="150">
+        <!-- <el-table-column align="center" prop="materialId" label="提货状态" width="150">
           <template slot-scope="scope">
             <el-tag type="success" v-if="scope.row.materialId.id !== 0">已提货</el-tag>
             <el-tag type="danger" v-if="scope.row.materialId.id === 0">未提货</el-tag>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column align="center" prop="materialId" label="订单状态" width="150">
           <template slot-scope="scope">
             <el-tag type="success" v-if="scope.row.state === 0">待付款</el-tag>
             <el-tag type="success" v-if="scope.row.state === 1">已付款</el-tag>
             <el-tag type="success" v-if="scope.row.state === 2">已完成/待转拍</el-tag>
             <el-tag type="danger" v-if="scope.row.state === 3">已取消</el-tag>
+            <el-tag type="success" v-if="scope.row.state === 4">待发货</el-tag>
+            <el-tag type="success" v-if="scope.row.state === 5">待收货</el-tag>
+            <el-tag type="success" v-if="scope.row.state === 6">已收货</el-tag>
           </template>
         </el-table-column>
         <!-- <el-table-column align="center" prop="timeCount" label="倒计时">
@@ -39,10 +44,33 @@
             <span v-if="scope.row.timeCount>0">{{scope.row.timeCount|capitalize}}</span>
           </template>
         </el-table-column> -->
-        <el-table-column align="center" prop="orderGoodId" label="商品信息" />
+        <!-- <el-table-column align="center" prop="orderGoodId" label="商品信息" /> -->
+        <el-table-column align="center" prop="saleUserId" label="卖家ID" />
         <el-table-column align="center" prop="saleUserName" label="卖家" />
+        <el-table-column align="center" prop="saleUserPhone" label="卖家电话" />
+        <el-table-column align="center" prop="buyUserId" label="买家ID" />
         <el-table-column align="center" prop="buyUserName" label="买家" />
+        <el-table-column align="center" prop="buyUserPhone" label="买家电话" />
         <el-table-column align="center" prop="price" label="订单金额" width="200" />
+        <el-table-column align="center" prop="paymentType" label="付款方式" width="150">
+          <template slot-scope="scope">
+            <el-tag type="success" v-if="scope.row.paymentType === 1">支付宝</el-tag>
+            <el-tag type="success" v-if="scope.row.paymentType === 2">微信</el-tag>
+            <el-tag type="success" v-if="scope.row.paymentType === 3">银行卡</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="paymentVoucher" label="打款凭证" width="150">
+          <el-popover placement="right" trigger="click" width="420" slot-scope="scope">
+            <img :src="scope.row.paymentVoucher" :alt="scope.row.paymentVoucher" style="width: 400px;" />
+            <img slot="reference" :src="scope.row.paymentVoucher" :alt="scope.row.paymentVoucher"
+              style="max-height: auto;max-width: 50px;cursor: pointer;" />
+          </el-popover>
+        </el-table-column>
+        <el-table-column align="center" prop="number" label="订单编号" width="200" />
+        <el-table-column align="center" prop="createTime" label="下单时间" width="200" />
+        <el-table-column align="center" prop="paymentTime" label="付款时间" width="200" />
+        <el-table-column align="center" prop="turnTime" label="转拍时间" width="200" />
+        <el-table-column align="center" prop="receiveTime" label="确认放货时间" width="200" />
         <el-table-column align="center" prop="goodId.houseId" label="库号" width="200" />
         <el-table-column align="center" prop="shopName" label="归属分馆" width="200">
           <!-- <template slot-scope="scope">
@@ -51,9 +79,14 @@
         </el-table-column>
         <el-table-column align="center" prop="sessionName" label="所属场次" width="200" />
         <el-table-column align="center" prop="goodId.name" label="拍品标题" width="200" />
-        <el-table-column align="center" prop="createTime" label="注册日期" width="200" />
-        <el-table-column align="center" label="操作" fixed="right" width="120">
+        <el-table-column align="center" label="操作" fixed="right" width="230">
           <template slot-scope="scope">
+            <el-button v-if="scope.row.state==1" size="mini" icon="el-icon-document-copy" type="primary"
+              @click="back(scope.row)">取消返场
+            </el-button>
+            <el-button v-if="scope.row.state==4" size="mini" icon="el-icon-document-copy" type="primary"
+              @click="backTake(scope.row)">取消提货
+            </el-button>
             <el-button size="mini" icon="el-icon-document-copy" type="primary" @click="getEditData(scope.row)">编辑货运
             </el-button>
           </template>
@@ -81,6 +114,19 @@
         <el-button type="primary" :loading="btnLoading" @click="addSubmit">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 取消返场弹出框 -->
+    <el-dialog :title="title1" :visible.sync="dialogFormVisibleBack">
+      <el-form :model="form2">
+        <el-form-item label="请重新选择拍卖日期" :label-width="formLabelWidth">
+          <el-date-picker v-model="form2.auctionDate" type="date" placeholder="选择日期" value-format="yyyy-MM-dd">
+          </el-date-picker>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleBack = false">取 消</el-button>
+        <el-button type="primary" :loading="btnLoading" @click="backSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -89,11 +135,15 @@
     orderList,
     orderAdd,
     orderUpdate,
-    shopList,
+    shopList1,
     addressList,
     addressDelete,
     getOrderList,
-    materialUpdate,
+    orderUpdate1,
+    orderBack,
+    takeBack,
+    //测试
+    ceshiList,
   } from "@/api/api";
   // import tableC from '@/components/Table/index'
   import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
@@ -118,7 +168,7 @@
           label: '全部订单'
         }, {
           value: 'state2',
-          label: '已提货'
+          label: '待发货'
         }, {
           value: 'state3',
           label: '待付款'
@@ -131,6 +181,12 @@
         }, {
           value: 'state6',
           label: '已取消'
+        }, {
+          value: 'state7',
+          label: '待收货'
+        }, {
+          value: 'state8',
+          label: '已收货'
         }, ],
         num: '100',
         value: '',
@@ -140,8 +196,14 @@
         listQuery: {
           page: 1,
           limit: 10,
-          realName: "",
-          phone: "",
+          buyUserId: "",
+          buyUserPhone: "",
+          saleUserId: "",
+          saleUserPhone: "",
+          goodHouseId: "",
+          number: "",
+          shopName: "",
+          sessionName: "",
         },
         tel: "",
         name: "",
@@ -150,6 +212,7 @@
         gridData: [],
         dialogFormVisible: false,
         dialogFormVisible1: false,
+        dialogFormVisibleBack: false,
         formLabelWidth: "220px",
         title1: "",
         btnLoading: false,
@@ -159,6 +222,10 @@
           serviceCompany: '',
           serviceNumber: ''
           // }
+        },
+        form2: {
+          id: '',
+          auctionDate: '',
         },
       };
     },
@@ -203,20 +270,32 @@
         } else if (val === 'state6') {
           this.num = 3
           this.getOrderList()
+        } else if (val === 'state7') {
+          this.num = 5
+          this.getOrderList()
+        } else if (val === 'state8') {
+          this.num = 6
+          this.getOrderList()
         }
       },
       // 定时器
       // showTime() {
       //   this.timer = setInterval(() => {
-      //     // this.getOrderList()
-      //     this.countdown = this.tableData.map((item, i) => {
-      //       item.timeCount--
-            
-      //       console.log(item.timeCount)
-      //     })
-      //   }, 2000);
+      //     this.getCeshi()
+      //   }, 10);
       // },
       // 倒计时处理
+
+      // 测试star--------------------------------------------
+      // getCeshi() {
+      //   ceshiList().then((res) => {
+      //     console.log('杨琛真帅',res)
+      //   }).catch(() => {
+      //     console.log('小蓉是憨憨+笨蛋')
+      //   })
+      // },
+      // 测试end--------------------------------------------
+
       // 获取收货地址
       getAddress(data) {
         const params = {
@@ -232,7 +311,7 @@
       },
       // 获取会馆数据
       getShopList() {
-        shopList()
+        shopList1()
           .then((response) => {
             this.pictLoading = false;
             this.tableData1 = response.data.data;
@@ -264,8 +343,14 @@
           num: this.num
         };
         const params1 = {
-          realName: this.listQuery.realName !== "" ? this.listQuery.realName : undefined,
-          phone: this.listQuery.phone !== "" ? this.listQuery.phone : undefined,
+          buyUserId: this.listQuery.buyUserId !== "" ? this.listQuery.buyUserId : undefined,
+          buyUserPhone: this.listQuery.buyUserPhone !== "" ? this.listQuery.buyUserPhone : undefined,
+          saleUserId: this.listQuery.saleUserId !== "" ? this.listQuery.saleUserId : undefined,
+          saleUserPhone: this.listQuery.saleUserPhone !== "" ? this.listQuery.saleUserPhone : undefined,
+          goodHouseId: this.listQuery.goodHouseId !== "" ? this.listQuery.goodHouseId : undefined,
+          number: this.listQuery.number !== "" ? this.listQuery.number : undefined,
+          shopName: this.listQuery.shopName !== "" ? this.listQuery.shopName : undefined,
+          sessionName: this.listQuery.sessionName !== "" ? this.listQuery.sessionName : undefined,
         };
         getOrderList(params, params1).then((res) => {
           this.tableData = res.data.data.currentList;
@@ -283,20 +368,89 @@
         this.title1 = "新增用户";
       },
 
+
+      // 取消返场
+      back(data) {
+        this.dialogFormVisibleBack = true;
+        this.form2.id = data.id;
+        this.title1 = "取消返场";
+      },
+      backSubmit() {
+        if (this.form2.id) {
+          orderBack(this.form2)
+            .then(() => {
+              this.$notify.success({
+                title: "成功",
+                message: "货运修改成功",
+              });
+              this.dialogFormVisibleBack = false;
+              // this.getList();
+              this.getOrderList()
+            })
+            .catch((response) => {
+              this.$notify.error({
+                title: "失败",
+                message: response.data.message,
+              });
+            });
+        }
+      },
+
+      // 取消提货
+      backTake(data) {
+        // console.log(data.id)
+        this.$confirm('此操作将取消提货, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          .then(() => {
+            // takeBack({
+            //     orderId: data.id
+            //   })
+            const params = {
+              orderId: data.id
+            }
+            const params1 = {
+
+            }
+            takeBack(params, params1)
+              .then((response) => {
+                this.$notify.success({
+                  title: '成功',
+                  message: '取消成功'
+                })
+                this.getOrderList()
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: '失败',
+                  message: response.data.message
+                })
+              })
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: '取消',
+              message: '已取消提货'
+            })
+          })
+      },
+
       // 编辑
       getEditData(data) {
         this.dialogFormVisible = true;
         // this.form.id = data.id;
-        this.form.id = data.materialId.id;
-        this.form.serviceCompany = data.materialId.serviceCompany;
-        this.form.serviceNumber = data.materialId.serviceNumber;
+        this.form.id = data.id;
+        this.form.serviceCompany = data.serviceCompany;
+        this.form.serviceNumber = data.serviceNumber;
         this.title1 = "编辑货运";
       },
       // 编辑新增确定事件
       addSubmit() {
         // this.btnLoading = true
         if (this.form.id) {
-          materialUpdate(this.form)
+          orderUpdate1(this.form)
             .then(() => {
               this.$notify.success({
                 title: "成功",

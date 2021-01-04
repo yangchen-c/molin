@@ -1,402 +1,286 @@
 <template>
   <div id="app">
-    <div class="money">
-      <span>总支出：{{ this.AllMoney }}元</span>
-    </div>
     <div class="btn">
       <el-button type="primary" @click="addShop">新建</el-button>
-      <el-date-picker
-        v-model="value2"
-        type="daterange"
-        align="right"
-        unlink-panels
-        range-separator="至"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
-        value-format="yyyy-MM-dd HH:mm:ss"
-        :picker-options="pickerOptions"
-        @change="ctime"
-      />
-      <el-button @click="handleDownload">导出表格</el-button>
-      <el-input
-        v-model="name"
-        placeholder="请输入门店名称"
-        clearable
-        style="width: 180px; margin-left: 100px"
-      />
+      <el-input v-model="listQuery.userId" placeholder="请输入会员ID" clearable style="width: 180px; margin-left: 50px" />
+      <el-input v-model="listQuery.userPhone" placeholder="请输入会员手机" clearable style="width: 180px;" />
       <el-button type="primary" @click="getList()">搜索</el-button>
     </div>
     <div class="tablee">
-      <el-table :data="tableData" border style="width: 100%">
+      <el-table :data="tableData" border style="width: 100%" v-loading="pictLoading">
         <el-table-column align="center" prop="id" label="ID" width="50" />
-        <el-table-column align="center" prop="name" label="姓名" />
-        <el-table-column align="center" prop="price" label="金额" />
-        <el-table-column align="center" prop="useTime" label="时间" />
-        <el-table-column align="center" prop="remark" label="用途" />
-        <el-table-column align="center" prop="voucher" label="凭证" width="200">
-          <template slot-scope="scope">
-            <img
-              :src="scope.row.voucher"
-              alt
-              style="width: 50px; height: 50px"
-            >
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="操作">
-          <template slot-scope="scope">
-            <el-button
-              size="mini"
-              icon="el-icon-document-copy"
-              type="primary"
-              @click="getEditData(scope.row)"
-            >编辑</el-button>
-            <el-button
-              size="mini"
-              icon="el-icon-user"
-              type="danger"
-              @click="delData(scope.row)"
-            >删除</el-button>
-          </template>
-        </el-table-column>
+        <el-table-column align="center" prop="userId" label="操作用户ID" />
+        <el-table-column align="center" prop="userPhone" label="用户手机" />
+        <el-table-column align="center" prop="typeDesc" label="操作描述" />
+        <el-table-column align="center" prop="count" label="操作数量" />
+        <el-table-column align="center" prop="targetPhone" label="转账的用户目标账号" />
+        <el-table-column align="center" prop="balance" label="操作后的余额" />
+        <el-table-column align="center" prop="remark" label="备注" />
+        <el-table-column align="center" prop="shopName" label="所属会馆" />
       </el-table>
+      <!-- 分页 -->
+      <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
+        @pagination="getList" />
     </div>
-    <!-- dialog弹出框 -->
-    <el-dialog :title="title1" :visible.sync="dialogFormVisible">
-      <el-form :model="form">
-        <el-form-item label="姓名" :label-width="formLabelWidth">
-          <el-input
-            v-model="form.name"
-            placeholder="请输入姓名"
-            style="width: 400px"
-          />
-        </el-form-item>
-        <el-form-item label="金额" :label-width="formLabelWidth">
-          <el-input
-            v-model="form.price"
-            placeholder="请输入金额"
-            style="width: 400px"
-          />
-        </el-form-item>
-        <el-form-item label="时间" :label-width="formLabelWidth">
-          <!-- <el-input v-model="form.useTime" placeholder="请输入时间" style="width:400px" /> -->
-          <el-date-picker
-            v-model="form.useTime"
-            type="datetime"
-            placeholder="选择日期时间"
-            default-time="12:00:00"
-            value-format="yyyy-MM-dd HH:mm:ss"
-          />
-        </el-form-item>
-        <el-form-item label="用途" :label-width="formLabelWidth">
-          <el-input
-            v-model="form.remark"
-            placeholder="请输入用途"
-            style="width: 400px"
-          />
-        </el-form-item>
-        <el-form-item label="凭证" :label-width="formLabelWidth">
-          <el-upload
-            :headers="headers"
-            :action="uploadPath"
-            :show-file-list="false"
-            :on-success="uploadUrl"
-            :before-upload="checkFileSize"
-            class="avatar-uploader"
-            accept=".jpg, .jpeg, .png"
-          >
-            <img v-if="form.voucher" :src="form.voucher" class="avatar">
-            <i v-else class="el-icon-plus avatar-uploader-icon" />
-            <div slot="tip" class="el-upload__tip">
-              只能上传jpg/png文件，且不超过1024kb
-            </div>
-          </el-upload>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button
-          type="primary"
-          :loading="btnLoading"
-          @click="addSubmit"
-        >确 定</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import {
-  balanceList,
-  balanceAdd,
-  balanceUpdate,
-  balanceDelete,
-  uploadPath
-} from '@/api/api'
-import { getToken } from '@/utils/auth'
+  import * as qiniu from "qiniu-js";
+  import {
+    detailList,
+    detailAdd,
+    detailUpdate1,
+    detailDelete,
+    uploadPath,
+    shopList1,
+  } from "@/api/api";
+  import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
 
-export default {
-  data() {
-    return {
-      AllMoney: '',
-      uploadPath,
-      pickerOptions: {
-        shortcuts: [
-          {
-            text: '最近一周',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-              picker.$emit('pick', [start, end])
-            }
-          },
-          {
-            text: '最近一个月',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-              picker.$emit('pick', [start, end])
-            }
-          },
-          {
-            text: '最近三个月',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
-              picker.$emit('pick', [start, end])
-            }
-          }
-        ]
-      },
-      value2: '',
-      name: '',
-      btnLoading: false,
-      tableData: [],
-      tableAllData: [],
-      dialogFormVisible: false,
-      form: {
-        name: '',
-        price: '',
-        useTime: '',
-        remark: '',
-        voucher: ''
-      },
-      formLabelWidth: '220px',
-      title1: '',
-      options: [
-        {
-          value: '选项1',
-          label: '收入'
-        },
-        {
-          value: '选项2',
-          label: '支出'
-        }
-      ],
-      value: ''
-    }
-  },
-  computed: {
-    headers() {
+  export default {
+    name: "Stafff",
+    components: {
+      Pagination
+    },
+    data() {
       return {
-        token: getToken()
-      }
-    }
-  },
-  created() {
-    this.getList()
-  },
-  methods: {
-    ctime() {
-      if (this.value2 !== '') {
-        this.tableData = this.tableAllData.filter(
-          // (el) => el.useTime - this.value2[0] > 0
-          (el) =>
-            +new Date(el.useTime) - +new Date(this.value2[0]) > 0 &&
-            +new Date(el.useTime) - +new Date(this.value2[1]) < 0
-        )
-      }
+        total: 0,
+        listQuery: {
+          page: 1,
+          limit: 10,
+          userId: "",
+          userPhone: "",
+        },
+        options: [{
+          value: '0',
+          label: '展示'
+        }, {
+          value: '1',
+          label: '不展示'
+        }],
+        value: '', //开始时间
+        value1: '', //结束时间
+        uploadData: {
+          //上传携带的额外参数
+          key: Date.parse(new Date()), //上传的文件名
+          token: "o0LJCt2VuwyRhDWaphZRJfQcHbWGh79blp_UgjG4:kU4U_XCm_uNmVoBOKFOLmEFb8DA=:eyJzY29wZSI6InNsZWciLCJkZWFkbGluZSI6NDc0OTEwODM1MH0=", //后端生成的token
+        },
+
+        btnLoading: false,
+        uploadPath,
+        pictLoading: true,
+        name: "", // 会馆名称
+        title1: "",
+        // 表格数据
+        tableData: [],
+        tableData1: [],
+        valueTableData1: '',
+        dialogFormVisible: false,
+        form: {
+          name: "",
+          photo: "",
+          startTime: '',
+          endTime: '',
+          state: '',
+          openExperience: '',
+          openGreen: '',
+          shopId: {
+            id: "",
+          },
+        },
+        formLabelWidth: "100px",
+      };
     },
-    // 文件上传
-    uploadUrl: function(response) {
-      console.log(response)
-      this.form.voucher = response.data
+    created() {
+      this.getShopList();
+      this.getList();
     },
-    checkFileSize: function(file) {
-      if (file.size > 1048576) {
-        this.$message.error(
-          `${file.name}文件大于1024KB，请选择小于1024KB大小的图片`
-        )
-        return false
-      }
-      return true
-    },
-    // 获取数据
-    getList() {
-      balanceList({ name: this.name })
-        .then((response) => {
-          this.tableData = response.data.data
-          this.tableAllData = response.data.data
-          var sum = 0
-          this.tableData.forEach((item) => {
-            sum = sum + Number(item.price)
+    methods: {
+      // 文件上传
+      uploadUrl: function (response) {
+        this.form.photo = "http://gvcdn.molinmall.cn/" + response.key;
+        // console.log(response.key);
+      },
+      checkFileSize: function (file) {
+        if (file.size > 1048576) {
+          this.$message.error(
+            `${file.name}文件大于1024KB，请选择小于1024KB大小的图片`
+          );
+          return false;
+        }
+        return true;
+      },
+      // 获取会馆数据
+      getShopList() {
+        shopList1()
+          .then((response) => {
+            this.pictLoading = false;
+            this.tableData1 = response.data.data;
           })
-          this.AllMoney = sum
-        })
-        .catch(() => {
-          this.tableData = []
-        })
-    },
-    // 新建
-    addShop() {
-      this.dialogFormVisible = true
-      this.form.name = ''
-      this.form.id = ''
-      this.form.price = ''
-      this.form.useTime = ''
-      this.form.voucher = ''
-      this.form.remark = ''
-      this.title1 = '新增收支'
-    },
-    // 编辑
-    getEditData(data) {
-      // console.log(this.form.id)
-      this.form.id = data.id
-      this.dialogFormVisible = true
-      this.form.name = data.name
-      this.form.price = data.price
-      this.form.useTime = data.useTime
-      this.form.remark = data.remark
-      this.form.voucher = data.voucher
-      this.title1 = '编辑收支'
-    },
-    // 编辑新增确定事件
-    addSubmit() {
-      // this.btnLoading = true
-      if (this.form.id) {
-        balanceUpdate(this.form)
-          .then(() => {
-            this.$notify.success({
-              title: '成功',
-              message: '记录修改成功'
-            })
-            this.dialogFormVisible = false
-            this.getList()
+          .catch(() => {
+            this.tableData1 = [];
+          });
+      },
+      // 会馆筛选
+      changeState(val) {
+        // console.log(val)
+
+        if (val === '') {
+          this.tableData = this.tableDataAll
+        } else if (val !== "") {
+          this.tableData = this.tableDataAll.filter((el) => el.shopId.name === val)
+        }
+      },
+      // 获取数据
+      getList() {
+        const params = {
+          page: this.listQuery.page,
+          size: this.listQuery.limit,
+        };
+        const params1 = {
+          userId: this.listQuery.userId !== "" ? this.listQuery.userId : undefined,
+          userPhone: this.listQuery.userPhone !== "" ? this.listQuery.userPhone : undefined,
+        };
+        detailList(params, params1)
+          .then((response) => {
+            this.pictLoading = false;
+            this.tableData = response.data.data.currentList;
+            this.tableDataAll = response.data.data.currentList;
+            this.total = response.data.data.totalRecords
           })
-          .catch((response) => {
-            this.$notify.error({
-              title: '失败',
-              message: response.data.message
-            })
-          })
-      } else {
-        balanceAdd(this.form)
-          .then(() => {
-            this.$notify.success({
-              title: '成功',
-              message: '记录添加成功'
-            })
-            this.dialogFormVisible = false
-            this.getList()
-          })
-          .catch((response) => {
-            this.$notify.error({
-              title: '失败',
-              message: response.data.message
-            })
-          })
-      }
-    },
-    // 删除
-    delData(row) {
-      this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-        .then(() => {
-          const params = {
-            id: row.id
-          }
-          balanceDelete(params)
-            .then((response) => {
+          .catch(() => {
+            this.tableData = [];
+          });
+      },
+      // 新建
+      addShop() {
+        this.dialogFormVisible = true;
+        this.form.name = "";
+        this.form.id = "";
+        this.form.photo = "";
+        this.form.startTime = "";
+        this.form.endTime = "";
+        this.form.state = "";
+        this.form.openExperience = "";
+        this.form.openGreen = "";
+        this.form.shopId.id = "";
+        this.title1 = "新增场次";
+      },
+      // 编辑
+      getEditData(data) {
+        this.dialogFormVisible = true;
+        this.form.name = data.name;
+        this.form.id = data.id;
+        this.form.photo = data.photo;
+        this.form.startTime = data.startTime;
+        this.form.endTime = data.endTime;
+        this.form.state = data.state;
+        this.form.openExperience = data.openExperience;
+        this.form.openGreen = data.openGreen;
+        this.form.shopId.id = data.shopId.id;
+        this.title1 = "编辑场次";
+      },
+      // 编辑新增确定事件
+      addSubmit() {
+        // this.btnLoading = true
+        if (this.form.id) {
+          detailUpdate1(this.form)
+            .then(() => {
               this.$notify.success({
-                title: '成功',
-                message: '记录删除成功'
-              })
-              this.getList()
+                title: "成功",
+                message: "会馆修改成功",
+              });
+              this.dialogFormVisible = false;
+              this.getList();
             })
             .catch((response) => {
               this.$notify.error({
-                title: '失败',
-                message: response.data.message
-              })
+                title: "失败",
+                message: response.data.message,
+              });
+            });
+        } else {
+          detailAdd(this.form)
+            .then(() => {
+              this.$notify.success({
+                title: "成功",
+                message: "会馆添加成功",
+              });
+              this.dialogFormVisible = false;
+              this.getList();
             })
-        })
-        .catch(() => {
-          this.$notify.error({
-            title: '取消',
-            message: '已取消删除'
+            .catch((response) => {
+              this.$notify.error({
+                title: "失败",
+                message: response.data.message,
+              });
+            });
+        }
+      },
+      // 删除
+      delData(row) {
+        this.$confirm("此操作将永久删除该会馆, 是否继续?", "提示", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning",
           })
-        })
+          .then(() => {
+            const params = {
+              id: row.id,
+            };
+            detailDelete(params)
+              .then((response) => {
+                this.$notify.success({
+                  title: "成功",
+                  message: "会馆删除成功",
+                });
+                this.getList();
+              })
+              .catch((response) => {
+                this.$notify.error({
+                  title: "失败",
+                  message: response.data.message,
+                });
+              });
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: "取消",
+              message: "已取消删除",
+            });
+          });
+      },
     },
-    // 导出表格
-    handleDownload() {
-      //   this.downloadLoading = true
-      import('@/vendor/Export2Excel').then((excel) => {
-        const tHeader = ['ID', '姓名', '金额', '时间', '用途', '凭证']
-        const filterVal = [
-          'id',
-          'name',
-          'price',
-          'useTime',
-          'remark',
-          'voucher'
-        ]
-        excel.export_json_to_excel2(
-          tHeader,
-          this.tableData,
-          filterVal,
-          '支出明细'
-        )
-        this.downloadLoading = false
-      })
-    }
-  }
-}
+  };
+
 </script>
 
 <style lang="less" scoped>
-@rem: 1920/100rem;
-#app {
-  box-sizing: border-box;
-  padding-left: 30 / @rem;
-  padding-top: 30 / @rem;
-  .money {
-    span {
-      margin-right: 50 / @rem;
+  @rem: 1920/100rem;
+
+  #app {
+    box-sizing: border-box;
+    padding-left: 30 / @rem;
+    padding-top: 30 / @rem;
+
+    .tablee {
+      margin-top: 20 / @rem;
+    }
+
+    .avatar-uploader-icon {
+      font-size: 28px;
+      color: #8c939d;
+      width: 120px;
+      height: 120px;
+      line-height: 120px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 145px;
+      height: 145px;
+      display: block;
     }
   }
-  .btn {
-    margin-top: 20 / @rem;
-  }
-  .tablee {
-    margin-top: 20 / @rem;
-  }
-  .avatar-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 120px;
-    height: 120px;
-    line-height: 120px;
-    text-align: center;
-  }
-  .avatar {
-    width: 145px;
-    height: 145px;
-    display: block;
-  }
-}
+
 </style>

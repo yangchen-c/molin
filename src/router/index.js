@@ -126,25 +126,26 @@ export const constantRouterMap = [
           title: '客户余额明细',
           // affix: true
         }
-      }, {
-        path: 'money',
-        component: () => import('@/views/balance/money'),
-        name: 'money',
-        meta: {
-          // perms: ['GET /admin/user/list'],
-          title: '客户充值明细',
-          // affix: true
-        }
-      }, {
-        path: 'outMoney',
-        component: () => import('@/views/balance/outMoney'),
-        name: 'outMoney',
-        meta: {
-          // perms: ['GET /admin/user/list'],
-          title: '客户体现明细',
-          // affix: true
-        }
-      }
+      },
+      //  {
+      //   path: 'money',
+      //   component: () => import('@/views/balance/money'),
+      //   name: 'money',
+      //   meta: {
+      //     // perms: ['GET /admin/user/list'],
+      //     title: '客户充值明细',
+      //     // affix: true
+      //   }
+      // }, {
+      //   path: 'outMoney',
+      //   component: () => import('@/views/balance/outMoney'),
+      //   name: 'outMoney',
+      //   meta: {
+      //     // perms: ['GET /admin/user/list'],
+      //     title: '客户提现明细',
+      //     // affix: true
+      //   }
+      // }
     ]
   },
 
@@ -184,6 +185,15 @@ export const constantRouterMap = [
         name: 'workSet',
         meta: {
           // perms: ['GET /admin/user/list'],
+          title: '商品兑换库',
+          // affix: true
+        }
+      }, {
+        path: 'goodsList',
+        component: () => import('@/views/staff/goodsList'),
+        name: 'goodsList',
+        meta: {
+          // perms: ['GET /admin/user/list'],
           title: '拍卖商品列表',
           // affix: true
         }
@@ -212,24 +222,64 @@ export const constantRouterMap = [
           title: '买单卖单列表',
           // affix: true
         }
-      }, 
-      // {
-      //   path: 'take',
-      //   component: () => import('@/views/order/take'),
-      //   name: 'take',
-      //   meta: {
-      //     // perms: ['GET /admin/user/list'],
-      //     title: '提货订单列表',
-      //     // affix: true
-      //   }
-      // },
-       {
+      },
+      {
         path: 'coupon',
         component: () => import('@/views/order/coupon'),
         name: 'coupon',
         meta: {
           // perms: ['GET /admin/user/list'],
           title: '代金券列表',
+          // affix: true
+        }
+      }
+    ]
+  },
+
+  // 权限管理
+  {
+    path: '/banner',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    name: 'banner',
+    meta: {
+      title: '轮播图管理',
+      icon: 'banner'
+    },
+    children: [
+      {
+        path: 'bannerf',
+        component: () => import('@/views/banner/bannerf'),
+        name: 'bannerf',
+        meta: {
+          // perms: ['GET /admin/user/list'],
+          title: '轮播图管理',
+          // affix: true
+        }
+      }
+    ]
+  },
+
+  // 权限管理
+  {
+    path: '/power',
+    component: Layout,
+    redirect: 'noredirect',
+    alwaysShow: true,
+    name: 'power',
+    meta: {
+      title: '权限管理',
+      icon: 'eye'
+    },
+    children: [
+      {
+        path: 'powerf',
+        component: () => import('@/views/power/powerf'),
+        name: 'powerf',
+        meta: {
+          // perms: ['GET /admin/user/list'],
+          title: '开设账号',
           // affix: true
         }
       }

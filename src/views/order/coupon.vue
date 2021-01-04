@@ -8,7 +8,6 @@
         @keyup.enter.native="getList" />
       <el-button type="primary" @click="getList()">搜索</el-button>
     </div>
-    <div class="all">总用户数：{{ this.tableData.length }}</div>
     <div class="tablee">
       <el-table :data="tableData" border style="width: 100%" v-loading="pictLoading">
         <el-table-column align="center" prop="id" label="ID" width="50" />

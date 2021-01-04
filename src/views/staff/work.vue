@@ -2,6 +2,12 @@
   <div id="app">
     <div class="btn">
       <el-button type="primary" @click="addShop">新建</el-button>
+      <el-input v-model="listQuery.name" placeholder="请输入场次名称" clearable style="width: 180px; margin-left: 50px" />
+      <el-select v-model="valueTableData1" placeholder="请选择会馆" @change="changeState($event)" clearable>
+        <el-option v-for="item in tableData1" :key="item.id" :label="item.name" :value="item.name">
+        </el-option>
+      </el-select>
+      <el-button type="primary" @click="getList()">搜索</el-button>
     </div>
     <div class="tablee">
       <el-table :data="tableData" border style="width: 100%" v-loading="pictLoading">
@@ -21,6 +27,18 @@
             <el-tag type="danger" v-if="scope.row.state == '1'">不展示</el-tag>
           </template>
         </el-table-column>
+        <el-table-column align="center" prop="openExperience" label="新人体验">
+          <template slot-scope="scope">
+            <el-tag type="danger" v-if="scope.row.openExperience == '0'">关</el-tag>
+            <el-tag type="success" v-if="scope.row.openExperience == '1'">开</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="openGreen" label="绿色通道">
+          <template slot-scope="scope">
+            <el-tag type="danger" v-if="scope.row.openGreen == '0'">关</el-tag>
+            <el-tag type="success" v-if="scope.row.openGreen == '1'">开</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column align="center" prop="shopId.name" label="所属会馆">
           <template slot-scope="scope">
             <el-tag>{{scope.row.shopId.name}}</el-tag>
@@ -34,6 +52,9 @@
           </template>
         </el-table-column>
       </el-table>
+      <!-- 分页 -->
+      <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
+        @pagination="getList" />
     </div>
     <!-- dialog弹出框 -->
     <el-dialog :title="title1" :visible.sync="dialogFormVisible">
@@ -64,6 +85,14 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="新人体验开关" :label-width="formLabelWidth">
+          <el-switch v-model="form.openExperience" active-color="#13ce66" inactive-color="#ff4949">
+          </el-switch>
+        </el-form-item>
+        <el-form-item label="绿色通道开关" :label-width="formLabelWidth">
+          <el-switch v-model="form.openGreen" active-color="#13ce66" inactive-color="#ff4949">
+          </el-switch>
+        </el-form-item>
         <el-form-item label="场次展示图" :label-width="formLabelWidth">
           <!-- :headers="headers" -->
           <el-upload :data="uploadData" :action="uploadPath" :show-file-list="false" :on-success="uploadUrl"
@@ -92,13 +121,24 @@
     sessionUpdate,
     sessionDelete,
     uploadPath,
-    shopList,
+    shopList1,
   } from "@/api/api";
+  import Pagination from "@/components/Pagination"; // Secondary package based on el-pagination
 
   export default {
     name: "Stafff",
+    components: {
+      Pagination
+    },
     data() {
       return {
+        total: 0,
+        listQuery: {
+          page: 1,
+          limit: 10,
+          name: "",
+          // phone: "",
+        },
         options: [{
           value: '0',
           label: '展示'
@@ -122,6 +162,7 @@
         // 表格数据
         tableData: [],
         tableData1: [],
+        valueTableData1: '',
         dialogFormVisible: false,
         form: {
           name: "",
@@ -129,6 +170,8 @@
           startTime: '',
           endTime: '',
           state: '',
+          openExperience: '',
+          openGreen: '',
           shopId: {
             id: "",
           },
@@ -157,7 +200,7 @@
       },
       // 获取会馆数据
       getShopList() {
-        shopList()
+        shopList1()
           .then((response) => {
             this.pictLoading = false;
             this.tableData1 = response.data.data;
@@ -166,12 +209,32 @@
             this.tableData1 = [];
           });
       },
+      // 会馆筛选
+      changeState(val) {
+        // console.log(val)
+
+        if (val === '') {
+          this.tableData = this.tableDataAll
+        } else if (val !== "") {
+          this.tableData = this.tableDataAll.filter((el) => el.shopId.name === val)
+        }
+      },
       // 获取数据
       getList() {
-        sessionList()
+        const params = {
+          page: this.listQuery.page,
+          size: this.listQuery.limit,
+        };
+        const params1 = {
+          name: this.listQuery.name !== "" ? this.listQuery.name : undefined,
+          phone: this.listQuery.phone !== "" ? this.listQuery.phone : undefined,
+        };
+        sessionList(params, params1)
           .then((response) => {
             this.pictLoading = false;
-            this.tableData = response.data.data;
+            this.tableData = response.data.data.currentList;
+            this.tableDataAll = response.data.data.currentList;
+            this.total = response.data.data.totalRecords
           })
           .catch(() => {
             this.tableData = [];
@@ -186,6 +249,8 @@
         this.form.startTime = "";
         this.form.endTime = "";
         this.form.state = "";
+        this.form.openExperience = "";
+        this.form.openGreen = "";
         this.form.shopId.id = "";
         this.title1 = "新增场次";
       },
@@ -198,6 +263,8 @@
         this.form.startTime = data.startTime;
         this.form.endTime = data.endTime;
         this.form.state = data.state;
+        this.form.openExperience = data.openExperience;
+        this.form.openGreen = data.openGreen;
         this.form.shopId.id = data.shopId.id;
         this.title1 = "编辑场次";
       },

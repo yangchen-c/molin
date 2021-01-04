@@ -1,7 +1,11 @@
 <template>
   <div id="app">
     <div class="btn">
-      <!-- <el-button type="primary" @click="addShop">新建</el-button> -->
+      <el-input v-model="listQuery.idCard" placeholder="请输入用户身份证" clearable style="width: 180px" />
+      <!-- <el-input v-model="listQuery.phone" placeholder="请输入手机号" clearable style="width: 180px" /> -->
+      <!-- <el-input v-model="listQuery.realName" placeholder="请输入用户姓名" clearable style="width: 180px" -->
+        <!-- @keyup.enter.native="getList" /> -->
+      <el-button type="primary" @click="getList()">搜索</el-button>
     </div>
     <div class="tablee">
       <el-table :data="tableData" border style="width: 100%" v-loading="pictLoading">
@@ -141,6 +145,7 @@
         listQuery: {
           page: 1,
           limit: 10,
+          idCard: "",
           realName: "",
           phone: "",
         },
@@ -193,6 +198,9 @@
         const params1 = {
           realName: this.listQuery.realName !== "" ? this.listQuery.realName : undefined,
           phone: this.listQuery.phone !== "" ? this.listQuery.phone : undefined,
+          idCard: this.listQuery.idCard !== "" ? this.listQuery.idCard : undefined,
+          star: this.time1 !== "" ? this.time1 : undefined,
+          end: this.time2 !== "" ? this.time2 : undefined,
         };
         uCheckList(params, params1).then((res) => {
           this.pictLoading = false
